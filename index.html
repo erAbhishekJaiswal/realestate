@@ -252,7 +252,7 @@
         .ongoing-projects {
             height: 90vh; /* Removed fixed height for responsiveness */
             background: #f8efe7 url('https://www.transparenttextures.com/patterns/light-paper-fibers.png');
-            padding: 4rem;
+            padding: 2rem;
             display: flex;
             justify-content: center;
         }
@@ -761,7 +761,7 @@
             border-radius: 10px;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
             max-width: 1300px; /* Added max-width */
-            margin: 40px; /* Center section */
+            margin: 40px auto; /* Center section */
         }
 
         .left-column {
@@ -1091,6 +1091,7 @@
             justify-content: flex-start; /* Aligned left */
             margin-top: 2rem; /* Added space */
             gap: 80px;
+            flex-wrap: wrap; /* Added */
         }
         .newsletter-col {
             display: flex;
@@ -1177,6 +1178,7 @@
 
 
         /* --- NEW Mobile Navigation Styles --- */
+        /* These styles are for a mobile menu, which you may want to connect to the menu button */
         .mobile-nav {
             position: fixed;
             top: 0;
@@ -1289,7 +1291,7 @@
                 height: 450px;
             }
 
-            /* Footer responsive (1024px) */
+            /* --- FOOTER RESPONSIVE (1024px) --- */
             .footer-container {
                 justify-content: space-around;
             }
@@ -1309,6 +1311,9 @@
                 justify-content: center;
             }
             .social-links {
+                justify-content: center;
+            }
+            .footer-col-box1 {
                 justify-content: center;
             }
         }
@@ -1362,9 +1367,11 @@
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
 
+            /* --- CONTACT SECTION RESPONSIVE (992px) --- */
             .contact-section {
                 flex-direction: column;
                 padding: 40px;
+                margin: 20px; /* Adjust margin */
             }
 
             .left-column {
@@ -1513,7 +1520,7 @@
                 font-size: 0.8em;
             }
 
-            /* Footer responsive (768px) */
+            /* --- FOOTER RESPONSIVE (768px) --- */
             .footer {
                 padding: 40px 0 20px 0;
             }
@@ -1578,11 +1585,11 @@
                 font-size: 1.5rem;
             }
 
+            /* --- CONTACT SECTION RESPONSIVE (576px) --- */
             .contact-section {
                 padding: 25px;
-                width: 100%;
-                box-shadow: none;
-                border-radius: 0;
+                width: auto; /* Let margin handle width */
+                margin: 20px;
             }
 
             .left-column h1 {
@@ -1614,6 +1621,7 @@
                 font-size: 2rem;
             }
 
+            /* --- FOOTER RESPONSIVE (480px) --- */
              .footer-logo {
                  width: 120px;
              }
@@ -2036,6 +2044,7 @@
     </footer>
 
     <!-- NEW JavaScript for Menu and Carousel -->
+    <!-- This script is for the mobile menu and carousel, you can connect them if needed -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- Mobile Menu Navigation ---
@@ -2068,7 +2077,8 @@
             const carousel = document.getElementById('projectCarousel');
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
-            const dotsContainer = document.querySelector('.projects-section .dots');
+            // Corrected selector for dots
+            const dotsContainer = document.querySelector('.projects-section .navigation .dots');
 
             if (carousel && prevBtn && nextBtn && dotsContainer) {
                 let currentIndex = 0;
@@ -2079,7 +2089,11 @@
 
                 // Clear existing dots and create new ones
                 dotsContainer.innerHTML = '';
-                for (let i = 0; i < totalItems; i++) {
+                // Adjust dot creation loop if necessary. Assuming we want one dot per item.
+                let dotsToCreate = totalItems; 
+                // This logic might need to change if you want one dot per "page" of items
+                
+                for (let i = 0; i < dotsToCreate; i++) {
                     const dot = document.createElement('span');
                     dot.classList.add('dot');
                     if (i === 0) dot.classList.add('active');
@@ -2090,6 +2104,8 @@
 
                 function updateCarouselDimensions() {
                     // Calculate item width including gap
+                    if (items.length === 0) return; // Guard clause
+                    
                     const cardStyle = window.getComputedStyle(items[0]);
                     const cardMarginRight = parseFloat(cardStyle.marginRight) || 30; // 30 is the gap
                     itemWidth = items[0].offsetWidth + cardMarginRight;
@@ -2098,32 +2114,51 @@
                     visibleItems = Math.floor(carousel.parentElement.offsetWidth / itemWidth);
                     if (visibleItems < 1) visibleItems = 1;
 
-                    // Adjust carousel to show full cards if possible (optional)
-                    // let containerWidth = visibleItems * itemWidth;
-                    // carousel.parentElement.style.width = `${containerWidth - cardMarginRight}px`;
-
                     updateCarousel();
                 }
 
                 function updateCarousel() {
-                    // Don't slide beyond the last possible item
-                    let maxIndex = totalItems - 1;
-                    // Adjust max index based on how many items are visible
-                    // This logic is tricky. Let's simplify: slide one at a time.
-                    // maxIndex = totalItems - visibleItems;
-                    // if (currentIndex > maxIndex) {
-                    //     currentIndex = maxIndex;
-                    // }
+                    if (items.length === 0) return; // Guard clause
+
+                    let maxIndex = totalItems - 1; 
+                    // Simple logic: one dot per card, slide one card at a time.
+                    
                     if (currentIndex < 0) {
                         currentIndex = 0;
                     }
-                    if (currentIndex >= totalItems) {
-                        currentIndex = totalItems - 1;
+                    if (currentIndex > maxIndex) {
+                        currentIndex = maxIndex;
                     }
+                    
+                    // Check how many items *can* be scrolled.
+                    // If the container is 800px and itemWidth is 330px, 2 items are visible.
+                    // Total width is items.length * itemWidth.
+                    // Max translate is totalWidth - container.width
+                    const containerWidth = carousel.parentElement.offsetWidth;
+                    const totalCarouselWidth = (itemWidth * totalItems) - (parseFloat(window.getComputedStyle(items[0]).marginRight) || 30); // Total width minus last gap
+                    let maxTranslate = totalCarouselWidth - containerWidth;
+                    
+                    if (maxTranslate < 0) maxTranslate = 0; // Don't translate if all items fit
 
+                    let translateValue = currentIndex * itemWidth;
+                    if (translateValue > maxTranslate) {
+                         // We are at the end, adjust to show the last item
+                         translateValue = maxTranslate;
+                         // This also means we should update currentIndex
+                         // currentIndex = totalItems - visibleItems; // This is complex
+                         // Let's stick to the simple logic.
+                         // If we are at the last dot, we are at the last item.
+                         // But the "next" button should disable when we can't move further.
+                         
+                         // Re-evaluate button logic
+                         nextBtn.disabled = (currentIndex * itemWidth) >= maxTranslate;
 
-                    carousel.style.transform = `translateX(-${currentIndex * itemWidth}px)`;
-
+                    } else {
+                         nextBtn.disabled = ( (currentIndex + 1) * itemWidth) > maxTranslate && (currentIndex * itemWidth) >= maxTranslate;
+                    }
+                    
+                    carousel.style.transform = `translateX(-${translateValue}px)`;
+                    
                     // Update dots
                     dots.forEach((dot, index) => {
                         dot.classList.toggle('active', index === currentIndex);
@@ -2131,11 +2166,24 @@
 
                     // Update buttons
                     prevBtn.disabled = currentIndex === 0;
-                    nextBtn.disabled = currentIndex === totalItems - 1; // Simplest logic: one by one
+                    
+                    // New nextBtn logic: disable if translating further would go past the max translation
+                    const nextTranslate = (currentIndex + 1) * itemWidth;
+                    nextBtn.disabled = nextTranslate > maxTranslate;
+
                 }
 
                 nextBtn.addEventListener('click', () => {
-                    if (currentIndex < totalItems - 1) {
+                    const containerWidth = carousel.parentElement.offsetWidth;
+                    const totalCarouselWidth = (itemWidth * totalItems) - (parseFloat(window.getComputedStyle(items[0]).marginRight) || 30);
+                    let maxTranslate = totalCarouselWidth - containerWidth;
+                    if (maxTranslate < 0) maxTranslate = 0;
+                    
+                    if ((currentIndex + 1) * itemWidth <= maxTranslate) {
+                        currentIndex++;
+                        updateCarousel();
+                    } else if (currentIndex * itemWidth < maxTranslate) {
+                        // Snap to end
                         currentIndex++;
                         updateCarousel();
                     }
@@ -2168,3 +2216,4 @@
     </script>
 </body>
 </html>
+
